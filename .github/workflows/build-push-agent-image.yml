@@ -1,4 +1,4 @@
-name: Build, Tag and Push to ACR
+name: Build, Tag and Push Agent to ACR
 
 on:
   push:
