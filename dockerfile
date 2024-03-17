@@ -31,13 +31,9 @@ RUN apt-get update && apt-get install -y apt-transport-https ca-certificates cur
 # Cleanup
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Add a user for the build agent
+# Add a user for the build agent and switch to it
 RUN useradd -m buildagent
-
-# Switch to the build agent user
 USER buildagent
-
-# Set the working directory to the user's home directory
 WORKDIR /home/buildagent
 
 # Download and install the Azure DevOps Agent
@@ -47,8 +43,8 @@ RUN curl -O https://vstsagentpackage.azureedge.net/agent/2.195.0/vsts-agent-linu
     tar zxvf ../vsts-agent-linux-x64-2.195.0.tar.gz && \
     rm ../vsts-agent-linux-x64-2.195.0.tar.gz
 
-COPY start.sh .
-
+COPY --chown=buildagent:buildagent start.sh .
 RUN chmod +x start.sh
-
 CMD ["./start.sh"]
+
+
