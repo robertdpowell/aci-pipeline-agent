@@ -1,1 +1,44 @@
+name: Build, Tag and Push to ACR
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate version tag
+        id: version
+        run: echo "VERSION_TAG=$(date +'%Y%m%d.%H%M%S')" >> $GITHUB_ENV
+
+      - name: Log in to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Build Docker image
+        run: |
+          docker build . -t acrpipelinepractice.azurecr.io/agent:${{ env.VERSION_TAG }}
+
+      - name: Push Docker image to ACR
+        run: |
+          az acr login --name acrpipelinepractice
+          docker push acrpipelinepractice.azurecr.io/agent:${{ env.VERSION_TAG }}
+
+      - name: Create and push git tag
+        run: |
+          git config --global user.email "you@example.com"
+          git config --global user.name "GitHub Action"
+          git tag ${{ env.VERSION_TAG }}
+          git push origin ${{ env.VERSION_TAG }}
+
+
 
