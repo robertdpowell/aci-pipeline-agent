@@ -40,5 +40,16 @@ jobs:
           git tag ${{ env.VERSION_TAG }}
           git push origin ${{ env.VERSION_TAG }}
 
-
+ # New step for deploying to ACI
+      - name: Deploy to Azure Container Instances
+        uses: azure/aci-deploy@v1
+        with:
+          resource-group: pipeline-practice 
+          dns-name-label: pipeline-practice-agent
+          image: acrpipelinepractice.azurecr.io/agent:${{ env.VERSION_TAG }}
+          registry-login-server: acrpipelinepractice.azurecr.io
+          registry-username: ${{ secrets.REGISTRY_USERNAME }} # Ensure this secret is set in GitHub Secrets
+          registry-password: ${{ secrets.REGISTRY_PASSWORD }} # Ensure this secret is set in GitHub Secrets
+          name: pipeline-practice-agent
+          location: uksouth
 
