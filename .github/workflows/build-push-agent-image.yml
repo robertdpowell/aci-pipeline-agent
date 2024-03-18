@@ -41,14 +41,18 @@ jobs:
           git push origin ${{ env.VERSION_TAG }}
 
       - name: Deploy to Azure Container Instances
-        run: |
-          az container create \
-            --resource-group pipeline-practice \
-            --name pipeline-practice-agent \
-            --image acrpipelinepractice.azurecr.io/agent:${{ env.VERSION_TAG }} \
-            --registry-login-server acrpipelinepractice.azurecr.io \
-            --registry-username ${{ secrets.REGISTRY_USERNAME }} \
-            --registry-password ${{ secrets.REGISTRY_PASSWORD }} \
-            --environment-variables AZDO_URL="${{ secrets.AZDO_URL }}" AZDO_PAT="${{ secrets.AZDO_PAT }}" AZDO_POOL="${{ secrets.AZDO_POOL }}" \
-            --location uksouth
+        uses: azure/aci-deploy@v1
+        with:
+          resource-group: pipeline-practice 
+          dns-name-label: pipeline-practice-agent
+          image: acrpipelinepractice.azurecr.io/agent:${{ env.VERSION_TAG }}
+          registry-login-server: acrpipelinepractice.azurecr.io
+          registry-username: ${{ secrets.REGISTRY_USERNAME }}
+          registry-password: ${{ secrets.REGISTRY_PASSWORD }}
+          name: pipeline-practice-agent
+          location: uksouth
+          environment-variables: |
+            AZDO_URL=${{ secrets.AZDO_URL }}
+            AZDO_PAT=${{ secrets.AZDO_PAT }}
+            AZDO_POOL=${{ secrets.AZDO_POOL }}
 
