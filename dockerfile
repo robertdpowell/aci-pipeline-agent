@@ -43,9 +43,6 @@ WORKDIR /home/buildagent
 # If you want to always download the latest version, uncomment the following lines:
 RUN AGENT_VERSION=$(curl -sL https://api.github.com/repos/microsoft/azure-pipelines-agent/releases/latest | jq -r '.tag_name')
 
-# Download and install the Azure DevOps Agent
-RUN curl -LsS https://vstsagentpackage.azureedge.net/agent/$AGENT_VERSION/vsts-agent-linux-x64-$AGENT_VERSION.tar.gz | tar -xzC ./myagent
-
 # Copy the start.sh script and ensure it's executable
 COPY --chown=buildagent:buildagent start.sh .
 RUN chmod +x ./start.sh
