@@ -6,11 +6,11 @@ on:
       - main # Adjust this as necessary for your workflow triggers
 
 env:
-  IMAGE_NAME: agent-image-name
-  REGISTRY_NAME: acrName # Replace with your ACR name
-  RESOURCE_GROUP: resourceGroupName # Replace with your resource group name
+  IMAGE_NAME: container-agent # Replace with your image name
+  REGISTRY_NAME: acrpipelinepractice # Replace with your ACR name
+  RESOURCE_GROUP: pipeline-practice # Replace with your resource group name
   ACI_NAME: agent-container-instance # Replace with your ACI name
-  LOCATION: location # Replace with your Azure region, e.g., "eastus"
+  LOCATION: uksouth # Replace with your Azure region, e.g., "eastus"
 
 jobs:
   build-and-deploy:
@@ -43,5 +43,5 @@ jobs:
         env:
           AZP_URL: ${{ secrets.AZP_URL }}
           AZP_TOKEN: ${{ secrets.AZP_TOKEN }}
-          AZP_AGENT_NAME: 'myagent' # Replace with the name you want for your agent
-          AZP_POOL: 'Default' # Replace with your Azure DevOps agent pool name
+          AZP_AGENT_NAME: ${{ secrets.AZP_AGENT_NAME }}
+          AZP_POOL: ${{ secrets.AZP_POOL }}
