@@ -3,7 +3,7 @@ name: Build and Deploy Agent to ACI
 on:
   push:
     branches:
-      - main # Adjust this as necessary for your workflow triggers
+      - main # Triggers the workflow on push to the main branch
 
 env:
   IMAGE_NAME: container-agent # Replace with your image name
@@ -17,31 +17,38 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      
+
       - name: Set up Azure CLI
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Build and push Docker image to ACR
+      - name: Build the Docker image
         run: |
-          az acr build --registry $REGISTRY_NAME --image $IMAGE_NAME .
+          docker build . -t ${{ env.IMAGE_NAME }}:latest
+
+      - name: Log in to ACR
+        run: |
+          az acr login --name ${{ env.REGISTRY_NAME }}
+
+      - name: Tag the Docker image
+        run: |
+          docker tag ${{ env.IMAGE_NAME }}:latest ${{ env.REGISTRY_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:latest
+
+      - name: Push the Docker image to ACR
+        run: |
+          docker push ${{ env.REGISTRY_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:latest
 
       - name: Deploy to ACI
         run: |
           az container create \
-            --resource-group $RESOURCE_GROUP \
-            --name $ACI_NAME \
-            --image $REGISTRY_NAME.azurecr.io/$IMAGE_NAME:latest \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --name ${{ env.ACI_NAME }} \
+            --image ${{ env.REGISTRY_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:latest \
             --cpu 1 --memory 1.5 \
             --environment-variables \
-              AZP_URL=$AZP_URL \
-              AZP_TOKEN=$AZP_TOKEN \
-              AZP_AGENT_NAME=$AZP_AGENT_NAME \
-              AZP_POOL=$AZP_POOL \
-            --location $LOCATION
-        env:
-          AZP_URL: ${{ secrets.AZP_URL }}
-          AZP_TOKEN: ${{ secrets.AZP_TOKEN }}
-          AZP_AGENT_NAME: ${{ secrets.AZP_AGENT_NAME }}
-          AZP_POOL: ${{ secrets.AZP_POOL }}
+              AZP_URL=${{ secrets.AZP_URL }} \
+              AZP_TOKEN=${{ secrets.AZP_TOKEN }} \
+              AZP_AGENT_NAME=${{ secrets.AZP_AGENT_NAME }} \
+              AZP_POOL=${{ secrets.AZP_POOL }} \
+            --location ${{ env.LOCATION }}
