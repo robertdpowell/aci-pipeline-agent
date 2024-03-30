@@ -1,58 +1,47 @@
-name: Build, Tag and Push Agent to ACR
+name: Build and Deploy Agent to ACI
 
 on:
   push:
     branches:
-      - main
+      - main # Adjust this as necessary for your workflow triggers
+
+env:
+  IMAGE_NAME: agent-image-name
+  REGISTRY_NAME: acrName # Replace with your ACR name
+  RESOURCE_GROUP: resourceGroupName # Replace with your resource group name
+  ACI_NAME: agent-container-instance # Replace with your ACI name
+  LOCATION: location # Replace with your Azure region, e.g., "eastus"
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Generate version tag
-        id: version
-        run: echo "VERSION_TAG=$(date +'%Y%m%d.%H%M%S')" >> $GITHUB_ENV
-
-      - name: Log in to Azure
+      - uses: actions/checkout@v2
+      
+      - name: Set up Azure CLI
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Build Docker image
+      - name: Build and push Docker image to ACR
         run: |
-          docker build . -t acrpipelinepractice.azurecr.io/agent:${{ env.VERSION_TAG }}
+          az acr build --registry $REGISTRY_NAME --image $IMAGE_NAME .
 
-      - name: Push Docker image to ACR
+      - name: Deploy to ACI
         run: |
-          az acr login --name acrpipelinepractice
-          docker push acrpipelinepractice.azurecr.io/agent:${{ env.VERSION_TAG }}
-
-      - name: Create and push git tag
-        run: |
-          git config --global user.email "you@example.com"
-          git config --global user.name "GitHub Action"
-          git tag ${{ env.VERSION_TAG }}
-          git push origin ${{ env.VERSION_TAG }}
-
-      - name: Deploy to Azure Container Instances
-        uses: azure/aci-deploy@v1
-        with:
-          resource-group: pipeline-practice 
-          dns-name-label: pipeline-practice-agent
-          image: acrpipelinepractice.azurecr.io/agent:${{ env.VERSION_TAG }}
-          registry-login-server: acrpipelinepractice.azurecr.io
-          registry-username: ${{ secrets.REGISTRY_USERNAME }}
-          registry-password: ${{ secrets.REGISTRY_PASSWORD }}
-          name: pipeline-practice-agent
-          location: uksouth
-          environment-variables: |
-            AZDO_URL=${{ secrets.AZDO_URL }}
-            AZDO_PAT=${{ secrets.AZDO_PAT }}
-            AZDO_POOL=${{ secrets.AZDO_POOL }}
-
+          az container create \
+            --resource-group $RESOURCE_GROUP \
+            --name $ACI_NAME \
+            --image $REGISTRY_NAME.azurecr.io/$IMAGE_NAME:latest \
+            --cpu 1 --memory 1.5 \
+            --environment-variables \
+              AZP_URL=$AZP_URL \
+              AZP_TOKEN=$AZP_TOKEN \
+              AZP_AGENT_NAME=$AZP_AGENT_NAME \
+              AZP_POOL=$AZP_POOL \
+            --location $LOCATION
+        env:
+          AZP_URL: ${{ secrets.AZP_URL }}
+          AZP_TOKEN: ${{ secrets.AZP_TOKEN }}
+          AZP_AGENT_NAME: 'myagent' # Replace with the name you want for your agent
+          AZP_POOL: 'Default' # Replace with your Azure DevOps agent pool name
