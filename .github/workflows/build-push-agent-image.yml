@@ -46,9 +46,13 @@ jobs:
             --name ${{ env.ACI_NAME }} \
             --image ${{ env.REGISTRY_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:latest \
             --cpu 1 --memory 1.5 \
+            --registry-login-server ${{ env.REGISTRY_NAME }}.azurecr.io \
+            --registry-username ${{ secrets.REGISTRY_USERNAME }} \
+            --registry-password ${{ secrets.REGISTRY_PASSWORD }} \
             --environment-variables \
               AZP_URL=${{ secrets.AZP_URL }} \
               AZP_TOKEN=${{ secrets.AZP_TOKEN }} \
               AZP_AGENT_NAME=${{ secrets.AZP_AGENT_NAME }} \
               AZP_POOL=${{ secrets.AZP_POOL }} \
             --location ${{ env.LOCATION }}
+      
