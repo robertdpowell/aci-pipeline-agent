@@ -5,6 +5,9 @@ RUN apt update -y && apt upgrade -y && apt install curl git jq libicu70 -y
 # Install Java (OpenJDK 11 in this example)
 RUN apt install -y openjdk-17-jdk
 
+# Verify Java installation
+RUN java -version && javac -version
+
 # Also can be "linux-arm", "linux-arm64".
 ENV TARGETARCH="linux-x64"
 
