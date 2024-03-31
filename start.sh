@@ -28,8 +28,6 @@ cleanup() {
   if [ -e ./config.sh ]; then
     print_header "Cleanup. Removing Azure Pipelines agent..."
 
-    # If the agent has some running jobs, the configuration removal process will fail.
-    # So, give it some time to finish the job.
     while true; do
       ./config.sh remove --unattended --auth "PAT" --token $(cat "${AZP_TOKEN_FILE}") && break
 
@@ -45,7 +43,6 @@ print_header() {
   echo -e "\n${lightcyan}$1${nocolor}\n"
 }
 
-# Let the agent ignore the token env variables
 export VSO_AGENT_IGNORE="AZP_TOKEN,AZP_TOKEN_FILE"
 
 print_header "1. Determining matching Azure Pipelines agent..."
@@ -75,8 +72,13 @@ trap "cleanup; exit 143" TERM
 
 print_header "3. Configuring Azure Pipelines agent..."
 
-# Log the Java version
+# Log the Java version and set JAVA_HOME
+JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))
+echo "JAVA_HOME is set to: $JAVA_HOME"
 java -version
+
+# Add JAVA_HOME as an environment variable for the agent
+echo "##vso[agent.setvar variable=JAVA_HOME]$JAVA_HOME"
 
 ./config.sh --unattended \
   --agent "${AZP_AGENT_NAME:-$(hostname)}" \
@@ -91,7 +93,6 @@ java -version
 print_header "4. Running Azure Pipelines agent..."
 
 chmod +x ./run.sh
-
 
 # To be aware of TERM and INT signals call ./run.sh
 # Running it with the --once flag at the end will shut down the agent after the build is executed
