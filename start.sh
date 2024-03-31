@@ -80,6 +80,12 @@ java -version
 # Add JAVA_HOME as an environment variable for the agent
 echo "##vso[agent.setvar variable=JAVA_HOME]$JAVA_HOME"
 
+# Add Java to PATH
+export PATH=$JAVA_HOME/bin:$PATH
+
+# Log the Java version for confirmation
+java -version
+
 ./config.sh --unattended \
   --agent "${AZP_AGENT_NAME:-$(hostname)}" \
   --url "${AZP_URL}" \
