@@ -30,4 +30,7 @@ USER agent
 # Another option is to run the agent as root.
 # ENV AGENT_ALLOW_RUNASROOT="true"
 
+# Mount the Docker socket from the host into the container
+VOLUME /var/run/docker.sock
+
 ENTRYPOINT ./start.sh
