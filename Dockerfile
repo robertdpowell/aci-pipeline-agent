@@ -8,6 +8,12 @@ RUN apt install -y openjdk-17-jdk
 # Verify Java installation
 RUN java -version && javac -version
 
+# Set JAVA_HOME for OpenJDK 17
+ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+
+# Ensure JAVA_HOME is in the PATH
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
+
 # Also can be "linux-arm", "linux-arm64".
 ENV TARGETARCH="linux-x64"
 
